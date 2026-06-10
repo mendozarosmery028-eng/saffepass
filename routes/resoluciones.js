@@ -11,6 +11,10 @@ const supabase = createClient(
 router.post('/', async (req, res) => {
   const { id_alerta, doctor, tiempo_respuesta, tratamiento, medicamento, lugar } = req.body;
 
+  if (!id_alerta || !doctor) {
+    return res.status(400).json({ error: 'id_alerta y doctor son requeridos' });
+  }
+
   const { data, error } = await supabase
     .from('resoluciones')
     .insert([{ id_alerta, doctor, tiempo_respuesta, tratamiento, medicamento, lugar }])
@@ -31,7 +35,7 @@ router.get('/:id_alerta', async (req, res) => {
     .eq('id_alerta', req.params.id_alerta)
     .single();
 
-  if (error) return res.status(404).json({ error });
+  if (error) return res.status(404).json({ error: 'Resolución no encontrada' });
   res.json(data);
 });
 

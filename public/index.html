@@ -22,7 +22,6 @@
       position: relative;
     }
 
-    /* Fondo con ondas SVG animadas */
     .bg-waves {
       position: fixed;
       top: 0; left: 0;
@@ -58,7 +57,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Grid lines de fondo */
     .grid-bg {
       position: fixed;
       top: 0; left: 0;
@@ -70,10 +68,8 @@
       z-index: 0;
     }
 
-    /* Contenido */
     .content { position: relative; z-index: 10; width: 100%; max-width: 400px; }
 
-    /* Header */
     .header {
       display: flex;
       align-items: center;
@@ -97,7 +93,6 @@
       margin-bottom: 24px;
     }
 
-    /* Zona card */
     .zona-card {
       background: rgba(0,230,200,0.05);
       border: 1px solid rgba(0,230,200,0.2);
@@ -117,7 +112,6 @@
     .zona-nombre { font-size: 1rem; font-weight: 600; color: white; }
     .zona-edificio { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
 
-    /* Botón wrapper */
     .btn-wrapper {
       position: relative;
       display: flex;
@@ -128,7 +122,6 @@
       margin: 0 auto 32px;
     }
 
-    /* Anillos orbitales */
     .orbit {
       position: absolute;
       border-radius: 50%;
@@ -158,7 +151,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Pulso interno */
     .pulse-ring {
       position: absolute;
       border-radius: 50%;
@@ -174,7 +166,6 @@
       100% { transform: scale(1.3); opacity: 0; }
     }
 
-    /* Botón principal */
     .btn-panico {
       position: relative;
       width: 160px;
@@ -215,7 +206,6 @@
       transform: none;
     }
 
-    /* Estado */
     .estado {
       display: none;
       background: rgba(0,230,200,0.05);
@@ -233,7 +223,6 @@
     .estado.activo { display: block; }
     .estado.error { display: block; color: #ff4d4d; }
 
-    /* Botón interrumpir */
     #btn-interrumpir {
       display: none;
       margin: 12px auto 0;
@@ -247,23 +236,21 @@
       letter-spacing: 1px;
     }
 
-    /* Burbujas */
-.bubble {
-  position: fixed;
-  bottom: -100px;
-  border-radius: 50%;
-  background: rgba(0,230,200,0.08);
-  border: 1px solid rgba(0,230,200,0.15);
-  animation: bubbleUp linear infinite;
-  z-index: 1;
-}
-@keyframes bubbleUp {
-  0% { transform: translateY(0) scale(1); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 0.5; }
-  100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
-}
-
+    .bubble {
+      position: fixed;
+      bottom: -100px;
+      border-radius: 50%;
+      background: rgba(0,230,200,0.08);
+      border: 1px solid rgba(0,230,200,0.15);
+      animation: bubbleUp linear infinite;
+      z-index: 1;
+    }
+    @keyframes bubbleUp {
+      0% { transform: translateY(0) scale(1); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 0.5; }
+      100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -295,10 +282,10 @@
     <div class="orbit"></div>
     <div class="pulse-ring"></div>
     <div class="pulse-ring"></div>
-   <button class="btn-panico" id="btn-panico" onclick="mostrarOpciones()">
-  <i class='bx bx-alarm-exclamation'></i>
-  EMERGENCIA
-</button>
+    <button class="btn-panico" id="btn-panico" onclick="mostrarOpciones()">
+      <i class='bx bx-alarm-exclamation'></i>
+      EMERGENCIA
+    </button>
   </div>
 
   <div style="width:100%; max-width:400px; position:relative; z-index:10;">
@@ -312,29 +299,23 @@
     let datosEstudiante = {};
     let pasoActual = 0;
 
-   const langParam = new URLSearchParams(window.location.search).get('lang');
-let idiomaDetectado = ['en', 'ko'].includes(langParam) ? langParam : 'es';
+    const preguntas = [
+      { key: 'nombre',     texto: '¿Cuál es tu nombre?' },
+      { key: 'edad',       texto: '¿Cuántos años tenés?' },
+      { key: 'genero',     texto: '¿Cuál es tu género? Decí masculino o femenino.' },
+      { key: 'emergencia', texto: '¿Qué pasó? Describilo brevemente.' }
+    ];
 
-const preguntas = {
-  es: [
-    { key: 'nombre', texto: '¿Cuál es tu nombre? / What is your name? / 당신의 이름은 무엇입니까?' },
-    { key: 'edad', texto: '¿Cuántos años tenés? / How old are you? / 몇 살이에요?' },
-    { key: 'genero', texto: '¿Cuál es tu género? Di masculino o femenino. / What is your gender? Say male or female. / 성별이 무엇입니까? 남성 또는 여성으로 말하세요.' },
-    { key: 'emergencia', texto: '¿Qué pasó? Describilo. / What happened? Describe it. / 무슨 일이 있었나요? 설명해 주세요.' }
-  ],
-  en: [
-    { key: 'nombre', texto: 'What is your name?' },
-    { key: 'edad', texto: 'How old are you?' },
-    { key: 'genero', texto: 'What is your gender? Say male or female.' },
-    { key: 'emergencia', texto: 'What happened? Please describe it briefly.' }
-  ],
-  ko: [
-    { key: 'nombre', texto: '당신의 이름은 무엇입니까?' },
-    { key: 'edad', texto: '몇 살이에요?' },
-    { key: 'genero', texto: '성별이 무엇입니까? 남성 또는 여성으로 말하세요.' },
-    { key: 'emergencia', texto: '무슨 일이 있었나요? 간단히 설명해 주세요.' }
-  ]
-};
+    const textos = {
+      noEscuche:   'No te escuché, por favor repetí.',
+      procesando:  'Procesando emergencia...',
+      consultando: 'Un momento, estoy consultando cómo ayudarte.',
+      enCamino:    'El personal médico ya viene en camino. Si necesitás más ayuda, decí Enfermera.',
+      masAyuda:    'Si necesitás más ayuda, decí Enfermera.',
+      estaAqui:    'Estoy aquí, contame qué pasó.',
+      bienvenida:  'Hola, soy SafePass, voy a ayudarte. Por favor respondé mis preguntas.'
+    };
+
     fetch(`/api/zonas/${zonaId}`)
       .then(r => r.json())
       .then(zona => {
@@ -345,322 +326,234 @@ const preguntas = {
         document.getElementById('zona-nombre').textContent = 'Zona no encontrada';
       });
 
-    function hablarEnIdioma(texto, lang, callback) {
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  const hacerHablar = () => {
-    const utterance = new SpeechSynthesisUtterance(texto);
-    utterance.rate = 1.2;
-    const voces = synth.getVoices();
-
-    if (lang === 'ko') {
-      utterance.lang = 'ko-KR';
-      const voz = voces.find(v => v.lang.startsWith('ko'));
-      if (voz) utterance.voice = voz;
-    } else if (lang === 'en') {
-      utterance.lang = 'en-US';
-      const voz = voces.find(v => v.name === 'Google US English') ||
-                  voces.find(v => v.lang === 'en-US');
-      if (voz) utterance.voice = voz;
-    } else {
-      utterance.lang = 'es-ES';
-      const voz = voces.find(v => v.name === 'Microsoft Pablo - Spanish (Spain)');
-      if (voz) utterance.voice = voz;
+    function hablar(texto, callback) {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const hacerHablar = () => {
+        const utterance = new SpeechSynthesisUtterance(texto);
+        utterance.lang = 'es-GT';
+        utterance.rate = 1.5;
+        const voces = synth.getVoices();
+        const voz = voces.find(v => v.name === 'Microsoft Pablo - Spanish (Spain)') ||
+                    voces.find(v => v.lang.startsWith('es'));
+        if (voz) utterance.voice = voz;
+        if (callback) utterance.onend = callback;
+        synth.speak(utterance);
+      };
+      speechSynthesis.getVoices().length > 0 ? hacerHablar() : (speechSynthesis.onvoiceschanged = hacerHablar);
     }
 
-    if (callback) utterance.onend = callback;
-    synth.speak(utterance);
-  };
+    function escuchar(callback) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'es-GT';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 3;
+      recognition.start();
 
-  if (speechSynthesis.getVoices().length > 0) {
-    hacerHablar();
-  } else {
-    speechSynthesis.onvoiceschanged = hacerHablar;
-  }
-}
+      recognition.onresult = (e) => {
+        const texto = e.results[0][0].transcript;
+        console.log('Escuché:', texto);
+        callback(texto);
+      };
 
-function hablar(texto, callback) {
-  hablarEnIdioma(texto, idiomaDetectado, callback);
-}
+      recognition.onspeechend = () => recognition.stop();
 
-    function obtenerTexto(clave) {
-  const textos = {
-    es: {
-      noEscuche: 'No te escuché, por favor repetí.',
-      procesando: 'Procesando emergencia...',
-      consultando: 'Un momento, estoy consultando cómo ayudarte.',
-      enCamino: 'El personal médico ya viene en camino. Si necesitás más ayuda decí Enfermera.',
-      masAyuda: 'Si necesitás más ayuda decí Enfermera.',
-      estaAqui: 'Estoy aquí, contame qué pasó.',
-      bienvenida: 'Hola, soy SafePass, voy a ayudarte. Por favor respondé mis preguntas.'
-    },
-    en: {
-      noEscuche: 'I did not hear you, please repeat.',
-      procesando: 'Processing emergency...',
-      consultando: 'One moment, I am looking up how to help you.',
-      enCamino: 'Medical staff is on their way. If you need more help say Nurse.',
-      masAyuda: 'If you need more help say Nurse.',
-      estaAqui: 'I am here, tell me what happened.',
-      bienvenida: 'Hello, I am SafePass, I will help you. Please answer my questions.'
-    },
-    ko: {
-      noEscuche: '잘 들리지 않았습니다. 다시 말씀해 주세요.',
-      procesando: '응급 상황 처리 중...',
-      consultando: '잠시만요, 도움을 드리겠습니다.',
-      enCamino: '의료진이 오고 있습니다. 더 도움이 필요하면 간호사라고 말하세요.',
-      masAyuda: '더 도움이 필요하면 간호사라고 말하세요.',
-      estaAqui: '여기 있습니다. 무슨 일이 있었는지 말해주세요.',
-      bienvenida: '안녕하세요, SafePass입니다. 도와드리겠습니다. 질문에 답해주세요.'
+      recognition.onerror = (e) => {
+        console.log('Error micrófono:', e.error);
+        if (e.error === 'no-speech') {
+          hablar(textos.noEscuche, () => escuchar(callback));
+        } else if (e.error === 'aborted') {
+          setTimeout(() => escuchar(callback), 500);
+        } else {
+          setTimeout(() => escuchar(callback), 1000);
+        }
+      };
     }
-  };
-  return textos[idiomaDetectado][clave];
-}
-
-    function escuchar(callback, esPrimeraPregunta = false) {
-  const estado = document.getElementById('estado');
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
-
-  // Primera pregunta acepta los 3 idiomas
-  if (esPrimeraPregunta) {
-    recognition.lang = 'es-GT';
-  } else {
-    recognition.lang = idiomaDetectado === 'ko' ? 'ko-KR' : idiomaDetectado === 'en' ? 'en-US' : 'es-GT';
-  }
-
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 3;
-  recognition.start();
-
-  recognition.onresult = (e) => {
-    const texto = e.results[0][0].transcript;
-    const lang = e.results[0][0]; 
-    console.log('Escuché:', texto);
-
-    // Detectar idioma en primera respuesta
-    if (esPrimeraPregunta) {
-      if (/[가-힣]/.test(texto)) {
-        idiomaDetectado = 'ko';
-        console.log('Idioma detectado: Coreano');
-      } else if (/^[a-zA-Z\s]+$/.test(texto) && !/[áéíóúñ¿¡]/.test(texto)) {
-        idiomaDetectado = 'en';
-        console.log('Idioma detectado: Inglés');
-      } else {
-        idiomaDetectado = 'es';
-        console.log('Idioma detectado: Español');
-      }
-    }
-    callback(texto);
-  };
-
-  recognition.onspeechend = () => recognition.stop();
-
-  recognition.onerror = (e) => {
-    console.log('Error micrófono:', e.error);
-    if (e.error === 'no-speech') {
-      hablar(obtenerTexto('noEscuche'), () => escuchar(callback, esPrimeraPregunta));
-    } else if (e.error === 'aborted') {
-      setTimeout(() => escuchar(callback, esPrimeraPregunta), 500);
-    } else {
-      setTimeout(() => escuchar(callback, esPrimeraPregunta), 1000);
-    }
-  };
-}
 
     function escucharPalabraClave() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
-  recognition.lang = idiomaDetectado === 'ko' ? 'ko-KR' : idiomaDetectado === 'en' ? 'en-US' : 'es-GT';
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.start();
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'es-GT';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.start();
 
-  recognition.onresult = async (e) => {
-    const texto = e.results[0][0].transcript.toLowerCase();
-    console.log('Detecté:', texto);
+      recognition.onresult = async (e) => {
+        const texto = e.results[0][0].transcript.toLowerCase();
+        console.log('Detecté:', texto);
 
-    const palabrasClave = {
-      es: ['enfermera', 'enfermero', 'ayuda', 'socorro'],
-      en: ['nurse', 'help', 'please help'],
-      ko: ['간호사', '도움', '도와주세요']
-    };
-
-    const palabras = palabrasClave[idiomaDetectado];
-    if (palabras.some(p => texto.includes(p))) {
-      hablar(obtenerTexto('estaAqui'), () => {
-        escuchar(async (consulta) => {
-          const estado = document.getElementById('estado');
-          estado.innerHTML = `<div style="color:rgba(0,230,200,0.6); font-size:0.8rem">${obtenerTexto('procesando')}</div>`;
-          const res = await fetch('/api/asistente/primeros-auxilios', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nombre: datosEstudiante.nombre,
-              edad: datosEstudiante.edad,
-              genero: datosEstudiante.genero,
-              emergencia: datosEstudiante.emergencia + '. Additional query: ' + consulta,
-              idioma: idiomaDetectado
-            })
+        const palabrasClave = ['enfermera', 'enfermero', 'ayuda', 'socorro'];
+        if (palabrasClave.some(p => texto.includes(p))) {
+          hablar(textos.estaAqui, () => {
+            escuchar(async (consulta) => {
+              const estado = document.getElementById('estado');
+              estado.innerHTML = `<div style="color:rgba(0,230,200,0.6); font-size:0.8rem">${textos.procesando}</div>`;
+              const res = await fetch('/api/asistente/primeros-auxilios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  nombre: datosEstudiante.nombre,
+                  edad: datosEstudiante.edad,
+                  genero: datosEstudiante.genero,
+                  emergencia: datosEstudiante.emergencia + '. Consulta adicional: ' + consulta,
+                  idioma: 'es'
+                })
+              });
+              const data = await res.json();
+              estado.innerHTML = `<div style="padding:8px 0; line-height:1.8">${data.respuesta}</div>`;
+              hablar(data.respuesta, () => {
+                hablar(textos.masAyuda, () => escucharPalabraClave());
+              });
+            });
           });
-          const data = await res.json();
-          estado.innerHTML = `<div style="padding:8px 0; line-height:1.8">${data.respuesta}</div>`;
-          hablar(data.respuesta, () => {
-            hablar(obtenerTexto('masAyuda'), () => escucharPalabraClave());
-          });
-        });
-      });
-    } else {
-      escucharPalabraClave();
+        } else {
+          escucharPalabraClave();
+        }
+      };
+
+      recognition.onerror = (e) => {
+        console.log('Error palabra clave:', e.error);
+        setTimeout(escucharPalabraClave, 1500);
+      };
     }
-  };
-
-  recognition.onerror = (e) => {
-    console.log('Error palabra clave:', e.error);
-    setTimeout(escucharPalabraClave, 1500);
-  };
-}
 
     function interrumpir() {
       window.speechSynthesis.cancel();
       hablar('Dime, te escucho.', () => escucharPalabraClave());
     }
 
-   function iniciarEmergencia() {
-  document.getElementById('modal-opciones').style.display = 'none';
-  const estado = document.getElementById('estado');
-  estado.className = 'estado activo';
-  pasoActual = 0;
-  datosEstudiante = {};
-  hablar(obtenerTexto('bienvenida'), siguientePregunta);
-}
+    function iniciarEmergencia() {
+      document.getElementById('modal-opciones').style.display = 'none';
+      const estado = document.getElementById('estado');
+      estado.className = 'estado activo';
+      pasoActual = 0;
+      datosEstudiante = {};
+      hablar(textos.bienvenida, siguientePregunta);
+    }
 
-   function siguientePregunta() {
-  if (pasoActual >= preguntas[idiomaDetectado].length) {
-    procesarEmergencia();
-    return;
-  }
-  const pregunta = preguntas[idiomaDetectado][pasoActual];
-  const estado = document.getElementById('estado');
-  estado.className = 'estado activo';
-  estado.innerHTML = `<span style="color:rgba(0,230,200,0.7); font-size:0.75rem; letter-spacing:1px">${pregunta.texto}</span>`;
+    function siguientePregunta() {
+      if (pasoActual >= preguntas.length) {
+        procesarEmergencia();
+        return;
+      }
+      const pregunta = preguntas[pasoActual];
+      const estado = document.getElementById('estado');
+      estado.className = 'estado activo';
+      estado.innerHTML = `<span style="color:rgba(0,230,200,0.7); font-size:0.75rem; letter-spacing:1px">${pregunta.texto}</span>`;
 
-  hablar(pregunta.texto, () => {
-    escuchar((respuesta) => {
-      datosEstudiante[pregunta.key] = respuesta;
-      estado.innerHTML += `<div style="margin-top:8px; padding:10px; background:rgba(0,230,200,0.05); border-radius:10px; border-left:3px solid #00e6c8;">
-        <span style="font-size:0.7rem; color:rgba(0,230,200,0.6)">
-          ${idiomaDetectado === 'ko' ? '들었습니다' : idiomaDetectado === 'en' ? 'Heard' : 'Escuché'}:
-        </span><br>
-        <strong style="color:white">${respuesta}</strong>
-      </div>`;
-      pasoActual++;
-      setTimeout(siguientePregunta, 800);
-    }, pasoActual === 0);
-  });
-}
+      hablar(pregunta.texto, () => {
+        escuchar((respuesta) => {
+          datosEstudiante[pregunta.key] = respuesta;
+          estado.innerHTML += `<div style="margin-top:8px; padding:10px; background:rgba(0,230,200,0.05); border-radius:10px; border-left:3px solid #00e6c8;">
+            <span style="font-size:0.7rem; color:rgba(0,230,200,0.6)">Escuché:</span><br>
+            <strong style="color:white">${respuesta}</strong>
+          </div>`;
+          pasoActual++;
+          setTimeout(siguientePregunta, 800);
+        });
+      });
+    }
 
-   async function procesarEmergencia() {
-  const estado = document.getElementById('estado');
-  estado.innerHTML = `<div style="color:rgba(0,230,200,0.6)">${obtenerTexto('procesando')}</div>`;
-  hablar(obtenerTexto('consultando'), null);
+    async function procesarEmergencia() {
+      const estado = document.getElementById('estado');
+      estado.innerHTML = `<div style="color:rgba(0,230,200,0.6)">${textos.procesando}</div>`;
+      hablar(textos.consultando, null);
 
-  await fetch('/api/alertas', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id_zona: zonaId,
-      nombre_estudiante: datosEstudiante.nombre,
-      genero: datosEstudiante.genero,
-      edad: datosEstudiante.edad,
-      tipo_emergencia: datosEstudiante.emergencia
-    })
-  });
+      await fetch('/api/alertas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_zona: zonaId,
+          nombre_estudiante: datosEstudiante.nombre,
+          genero: datosEstudiante.genero,
+          edad: datosEstudiante.edad,
+          tipo_emergencia: datosEstudiante.emergencia
+        })
+      });
 
-  const res = await fetch('/api/asistente/primeros-auxilios', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...datosEstudiante, idioma: idiomaDetectado })
-  });
+      const res = await fetch('/api/asistente/primeros-auxilios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...datosEstudiante, idioma: 'es' })
+      });
 
-  const data = await res.json();
-  estado.innerHTML = `<div style="padding:8px 0; line-height:1.8">${data.respuesta}</div>`;
-  document.getElementById('btn-interrumpir').style.display = 'block';
-  hablar(data.respuesta, () => {
-    hablar(obtenerTexto('enCamino'), () => escucharPalabraClave());
-  });
-}
+      const data = await res.json();
+      estado.innerHTML = `<div style="padding:8px 0; line-height:1.8">${data.respuesta}</div>`;
+      document.getElementById('btn-interrumpir').style.display = 'block';
+      hablar(data.respuesta, () => {
+        hablar(textos.enCamino, () => escucharPalabraClave());
+      });
+    }
 
-    // Generar burbujas
-function crearBurbuja() {
-  const burbuja = document.createElement('div');
-  burbuja.classList.add('bubble');
-  const size = Math.random() * 40 + 10;
-  burbuja.style.width = size + 'px';
-  burbuja.style.height = size + 'px';
-  burbuja.style.left = Math.random() * 100 + 'vw';
-  burbuja.style.animationDuration = (Math.random() * 8 + 6) + 's';
-  burbuja.style.animationDelay = (Math.random() * 3) + 's';
-  document.body.appendChild(burbuja);
-  setTimeout(() => burbuja.remove(), 14000);
-}
-setInterval(crearBurbuja, 800);
+    function crearBurbuja() {
+      const burbuja = document.createElement('div');
+      burbuja.classList.add('bubble');
+      const size = Math.random() * 40 + 10;
+      burbuja.style.width = size + 'px';
+      burbuja.style.height = size + 'px';
+      burbuja.style.left = Math.random() * 100 + 'vw';
+      burbuja.style.animationDuration = (Math.random() * 8 + 6) + 's';
+      burbuja.style.animationDelay = (Math.random() * 3) + 's';
+      document.body.appendChild(burbuja);
+      setTimeout(() => burbuja.remove(), 14000);
+    }
+    setInterval(crearBurbuja, 800);
 
-function mostrarOpciones() {
-  document.getElementById('btn-panico').disabled = true;
-  const modal = document.getElementById('modal-opciones');
-  modal.style.display = 'flex';
-}
+    function mostrarOpciones() {
+      document.getElementById('btn-panico').disabled = true;
+      document.getElementById('modal-opciones').style.display = 'flex';
+    }
 
-function iniciarEscritura() {
-  document.getElementById('modal-opciones').style.display = 'none';
-  document.getElementById('modal-escritura').style.display = 'flex';
-}
+    function iniciarEscritura() {
+      document.getElementById('modal-opciones').style.display = 'none';
+      document.getElementById('modal-escritura').style.display = 'flex';
+    }
 
-async function enviarFormulario() {
-  const nombre = document.getElementById('txt-nombre').value;
-  const edad = document.getElementById('txt-edad').value;
-  const genero = document.getElementById('txt-genero').value;
-  const emergencia = document.getElementById('txt-emergencia').value;
+    async function enviarFormulario() {
+      const nombre = document.getElementById('txt-nombre').value;
+      const edad = document.getElementById('txt-edad').value;
+      const genero = document.getElementById('txt-genero').value;
+      const emergencia = document.getElementById('txt-emergencia').value;
 
-  if (!nombre || !edad || !genero || !emergencia) {
-    alert('Por favor completá todos los campos');
-    return;
-  }
+      if (!nombre || !edad || !genero || !emergencia) {
+        alert('Por favor completá todos los campos');
+        return;
+      }
 
-  datosEstudiante = { nombre, edad, genero, emergencia };
-  document.getElementById('modal-escritura').style.display = 'none';
+      datosEstudiante = { nombre, edad, genero, emergencia };
+      document.getElementById('modal-escritura').style.display = 'none';
 
-  const estado = document.getElementById('estado');
-  estado.className = 'estado activo';
-  estado.innerHTML = `<div style="color:rgba(0,230,200,0.6)">Procesando emergencia...</div>`;
+      const estado = document.getElementById('estado');
+      estado.className = 'estado activo';
+      estado.innerHTML = `<div style="color:rgba(0,230,200,0.6)">${textos.procesando}</div>`;
 
-  await fetch('/api/alertas', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id_zona: zonaId,
-      nombre_estudiante: nombre,
-      genero,
-      edad,
-      tipo_emergencia: emergencia
-    })
-  });
+      await fetch('/api/alertas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_zona: zonaId,
+          nombre_estudiante: nombre,
+          genero,
+          edad,
+          tipo_emergencia: emergencia
+        })
+      });
 
-  const res = await fetch('/api/asistente/primeros-auxilios', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...datosEstudiante, idioma: idiomaDetectado })
-  });
+      const res = await fetch('/api/asistente/primeros-auxilios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...datosEstudiante, idioma: 'es' })
+      });
 
-  const data = await res.json();
-  estado.innerHTML = `<div style="padding:8px 0; line-height:1.8">${data.respuesta}</div>`;
-  document.getElementById('btn-interrumpir').style.display = 'block';
-  hablar(data.respuesta, () => {
-    hablar(obtenerTexto('enCamino'), () => escucharPalabraClave());
-  });
-}
-
+      const data = await res.json();
+      estado.innerHTML = `<div style="padding:8px 0; line-height:1.8">${data.respuesta}</div>`;
+      document.getElementById('btn-interrumpir').style.display = 'block';
+      hablar(data.respuesta, () => {
+        hablar(textos.enCamino, () => escucharPalabraClave());
+      });
+    }
   </script>
 
 <!-- Modal opciones -->
