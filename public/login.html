@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafePass - Login</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ===== SPLASH ===== */
+    .splash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #020f1a, #031a2e);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    .splash.salir { transform: translateX(100%); }
+
+    .ecg-wrapper {
+      width: 280px;
+      height: 80px;
+      margin-bottom: 40px;
+    }
+    .ecg-path {
+      fill: none;
+      stroke: #00e6c8;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: ecgDraw 2s ease forwards;
+      filter: drop-shadow(0 0 6px #00e6c8);
+    }
+    @keyframes ecgDraw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .shield-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease 1.8s forwards;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .shield-icon {
+      font-size: 5rem;
+      color: #00e6c8;
+      filter: drop-shadow(0 0 20px rgba(0,230,200,0.6));
+      animation: shieldPulse 2s ease 2s infinite;
+    }
+    @keyframes shieldPulse {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(0,230,200,0.6)); }
+      50% { filter: drop-shadow(0 0 40px rgba(0,230,200,1)); }
+    }
+    .splash-logo { font-size: 2rem; font-weight: 700; color: white; letter-spacing: 4px; }
+    .splash-sub { font-size: 0.75rem; color: rgba(0,230,200,0.6); letter-spacing: 2px; text-transform: uppercase; }
+
+    /* ===== LOGIN ===== */
+    .login-page {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.6s;
+    }
+    .login-page.visible { opacity: 1; }
+
+    /* Mitad oscura */
+    .login-left {
+      width: 45%;
+      background: linear-gradient(160deg, #022849, #031a2e);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-left::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,230,200,0.1) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+    }
+    .left-icon {
+      font-size: 4rem;
+      color: #09544a;
+      filter: drop-shadow(0 0 20px rgba(5, 255, 222, 0.749));
+      margin-bottom: 16px;
+      animation: shieldPulse 3s ease infinite;
+    }
+    .left-titulo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 3px;
+      text-align: center;
+    }
+    .left-sub {
+      font-size: 0.65rem;
+      color: rgba(0,230,200,0.5);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* Líneas decorativas */
+    .left-lines {
+      position: absolute;
+      top: 20px; left: 20px;
+      right: 20px;
+    }
+    .left-line {
+      height: 1px;
+      background: rgba(0,230,200,0.1);
+      margin-bottom: 12px;
+    }
+
+    /* Mitad clara */
+    .login-right {
+      width: 55%;
+      background: #f0fffe;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Círculos flotantes */
+    .float-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,184,160,0.06) 0%, transparent 70%);
+      animation: floatUp linear infinite;
+      pointer-events: none;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(100%) scale(0.5); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 0.5; }
+      100% { transform: translateY(-100%) scale(1.2); opacity: 0; }
+    }
+
+    .login-form { width: 100%; max-width: 300px; position: relative; z-index: 10; }
+
+    .form-icon-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #00313f, #002c51);
+      border-radius: 20px;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 20px rgba(0,184,160,0.3);
+    }
+    .form-icon-wrapper i { font-size: 2rem; color: white; }
+
+    .form-titulo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #050d1a;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .form-sub {
+      font-size: 0.75rem;
+      color: #7a9aaa;
+      text-align: center;
+      letter-spacing: 0.5px;
+      margin-bottom: 28px;
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      font-size: 0.7rem;
+      color: #7a9aaa;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: #00b8a0;
+      font-size: 1.1rem;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1.5px solid rgba(0,184,160,0.2);
+      border-radius: 12px;
+      font-size: 0.88rem;
+      color: #050d1a;
+      background: white;
+      outline: none;
+      transition: all 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .form-input:focus {
+      border-color: #00b8a0;
+      box-shadow: 0 0 0 3px rgba(0,184,160,0.1);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #03324b, #024e88);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0,184,160,0.3);
+    }
+    .btn-login:hover {
+      box-shadow: 0 8px 25px rgba(0,184,160,0.5);
+      transform: translateY(-1px);
+    }
+
+    .error-msg {
+      color: #ff4d4d;
+      font-size: 0.78rem;
+      text-align: center;
+      margin-top: 12px;
+      display: none;
+      padding: 8px;
+      background: rgba(255,77,77,0.08);
+      border-radius: 8px;
+    }
+    .error-msg.visible { display: block; }
+
+    /* Mobile */
+    @media (max-width: 500px) {
+      .login-left { display: none; }
+      .login-right { width: 100%; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SPLASH -->
+  <div class="splash" id="splash">
+    <div class="ecg-wrapper">
+      <svg width="280" height="80" viewBox="0 0 280 80">
+        <path class="ecg-path" d="M0,40 L40,40 L50,40 L60,10 L70,70 L80,20 L90,40 L110,40 L120,40 L130,10 L140,70 L150,20 L160,40 L200,40 L210,40 L220,10 L230,70 L240,20 L250,40 L280,40"/>
+      </svg>
+    </div>
+    <div class="shield-wrapper">
+      <i class='bx bx-shield-quarter shield-icon'></i>
+      <div class="splash-logo">SAFEPASS</div>
+      <div class="splash-sub">ITCA-FEPADE · Santa Tecla</div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="login-page" id="login-page">
+
+    <!-- Izquierda oscura -->
+    <div class="login-left">
+      <div class="left-lines">
+        <div class="left-line"></div>
+        <div class="left-line"></div>
+        <div class="left-line"></div>
+      </div>
+      <i class='bx bx-shield-quarter'></i>
+      <div class="left-titulo">SAFEPASS</div>
+      <div class="left-sub">ITCA-FEPADE · Santa Tecla</div>
+    </div>
+
+    <!-- Derecha clara -->
+    <div class="login-right" id="login-right">
+      <div class="login-form">
+        <div class="form-icon-wrapper">
+          <i class='bx bx-shield-quarter'></i>
+        </div>
+        <div class="form-titulo">Bienvenido</div>
+        <div class="form-sub">Iniciá sesión para acceder al panel de clínica</div>
+
+        <div class="form-group">
+          <label class="form-label">Correo</label>
+          <div class="input-wrapper">
+            <i class='bx bx-envelope'></i>
+            <input class="form-input" id="input-correo" type="email" placeholder="doctor@itca.edu.sv">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <div class="input-wrapper">
+            <i class='bx bx-lock-alt'></i>
+            <input class="form-input" id="input-password" type="password" placeholder="••••••••"
+              onkeydown="if(event.key==='Enter') login()">
+          </div>
+        </div>
+
+        <button class="btn-login" onclick="login()">
+          <i class='bx bx-log-in'></i>
+          INGRESAR AL PANEL
+        </button>
+
+        <div class="error-msg" id="error-msg">
+          Credenciales incorrectas. Intentá de nuevo.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Círculos flotantes
+    function crearCirculo() {
+      const c = document.createElement('div');
+      c.classList.add('float-circle');
+      const size = Math.random() * 120 + 40;
+      c.style.width = size + 'px';
+      c.style.height = size + 'px';
+      c.style.left = Math.random() * 100 + '%';
+      c.style.bottom = '-200px';
+      c.style.animationDuration = (Math.random() * 10 + 8) + 's';
+      c.style.animationDelay = (Math.random() * 4) + 's';
+      document.getElementById('login-right').appendChild(c);
+      setTimeout(() => c.remove(), 20000);
+    }
+    setInterval(crearCirculo, 1500);
+
+    // Splash → Login
+    setTimeout(() => {
+      document.getElementById('splash').classList.add('salir');
+      document.getElementById('login-page').classList.add('visible');
+    }, 3500);
+
+    // Login
+    async function login() {
+      const correo = document.getElementById('input-correo').value;
+      const password = document.getElementById('input-password').value;
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.classList.remove('visible');
+
+      if (!correo || !password) {
+        errorMsg.textContent = 'Por favor completá todos los campos.';
+        errorMsg.classList.add('visible');
+        return;
+      }
+
+      const res = await fetch('/api/usuarios/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo, password })
+      });
+
+      if (res.ok) {
+        const usuario = await res.json();
+        sessionStorage.setItem('usuario', JSON.stringify(usuario));
+        window.location.href = '/clinica.html';
+      } else {
+        errorMsg.textContent = 'Credenciales incorrectas. Intentá de nuevo.';
+        errorMsg.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

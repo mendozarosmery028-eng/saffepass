@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafePass - Clínica</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #e8f8f6;
+      color: #050d1a;
+      min-height: 100vh;
+      padding: 20px 20px 100px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(0,184,160,0.2);
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-left i { font-size: 1.6rem; color: #00b8a0; }
+    .logo { font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; }
+    .badge-clinica {
+      background: rgba(0,184,160,0.1);
+      border: 1px solid rgba(0,184,160,0.3);
+      color: #00b8a0;
+      font-size: 0.7rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #f5fffe;
+      border: 1px solid rgba(0,184,160,0.2);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,184,160,0.08);
+    }
+    .stat-numero { font-size: 1.8rem; font-weight: 700; color: #00b8a0; }
+    .stat-numero.rojo { color: #ff4d4d; }
+    .stat-label { font-size: 0.65rem; color: #7a9aaa; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .sec-titulo {
+      font-size: 0.72rem;
+      color: #7a9aaa;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot-rojo {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff4d4d;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+    .alerta-card {
+      background: #f5fffe;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .alerta-card.activa {
+      border: 2px solid #ff4d4d;
+      animation: alertaEntrada 0.5s ease, alertaPulse 2s ease-in-out infinite;
+    }
+    .alerta-card.atendida {
+      border: 1px solid rgba(0,184,160,0.3);
+      opacity: 0.8;
+    }
+    @keyframes alertaEntrada {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes alertaPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,77,77,0.3); }
+      50% { box-shadow: 0 0 0 8px rgba(255,77,77,0); }
+    }
+    .alerta-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .alerta-badge-activa {
+      background: #ff4d4d;
+      color: white;
+      font-size: 0.65rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      animation: blink 1s infinite;
+    }
+    .alerta-hora { font-size: 0.75rem; color: #7a9aaa; }
+    .alerta-nombre { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .alerta-emergencia {
+      font-size: 0.85rem;
+      color: #ff4d4d;
+      font-weight: 600;
+      margin-bottom: 10px;
+      padding: 6px 12px;
+      background: rgba(255,77,77,0.08);
+      border-radius: 8px;
+      border-left: 3px solid #ff4d4d;
+    }
+    .alerta-datos {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .tag {
+      font-size: 0.72rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(0,184,160,0.08);
+      color: #00b8a0;
+      border: 1px solid rgba(0,184,160,0.2);
+    }
+    .alerta-zona {
+      font-size: 0.8rem;
+      color: #7a9aaa;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+    .btn-camino {
+      width: 100%;
+      padding: 10px;
+      background: #f5fffe;
+      border: 2px solid #00b8a0;
+      color: #00b8a0;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-camino:hover { background: rgba(0,184,160,0.08); }
+    .btn-camino.activo { background: rgba(0,184,160,0.1); color: #00b8a0; }
+    .btn-resolver {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #00c8b0, #00e676);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-resolver:hover { box-shadow: 0 4px 15px rgba(0,184,160,0.4); }
+    .vacio {
+      text-align: center;
+      color: #7a9aaa;
+      font-size: 0.85rem;
+      padding: 40px 20px;
+    }
+    .vacio i { font-size: 2.5rem; display: block; margin-bottom: 8px; color: #00b8a0; }
+    .historial-item {
+      background: #f5fffe;
+      border: 1px solid rgba(0,184,160,0.15);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .historial-nombre { font-size: 0.9rem; font-weight: 600; }
+    .historial-sub { font-size: 0.75rem; color: #7a9aaa; margin-top: 2px; }
+    .badge-ok {
+      font-size: 0.65rem; padding: 3px 10px; border-radius: 20px;
+      background: rgba(0,184,160,0.1); color: #00b8a0;
+      border: 1px solid rgba(0,184,160,0.2); white-space: nowrap;
+    }
+    .badge-act {
+      font-size: 0.65rem; padding: 3px 10px; border-radius: 20px;
+      background: rgba(255,77,77,0.1); color: #ff4d4d;
+      border: 1px solid rgba(255,77,77,0.2); white-space: nowrap;
+    }
+    .chart-card {
+      background: #f5fffe;
+      border: 1px solid rgba(0,184,160,0.2);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,184,160,0.08);
+    }
+    .chart-titulo { font-size: 0.8rem; font-weight: 600; margin-bottom: 14px; color: #050d1a; }
+    .bar-item { margin-bottom: 10px; }
+    .bar-label { font-size: 0.75rem; color: #7a9aaa; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .bar-bg { background: #e8f8f6; border-radius: 10px; height: 10px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #00c8b0, #00e676); transition: width 1s ease; }
+    .seccion { display: none; }
+    .seccion.visible { display: block; }
+    .nav-bottom {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 40px);
+      max-width: 420px;
+      background: #f5fffe;
+      border-radius: 25px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 10px;
+      z-index: 100;
+      border: 1px solid rgba(0,184,160,0.15);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      color: #7a9aaa;
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border: none;
+      background: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .nav-item i { font-size: 1.3rem; transition: all 0.3s; }
+    .nav-item.active {
+      color: white;
+      background: linear-gradient(135deg, #00c8b0, #00e676);
+      box-shadow: 0 4px 15px rgba(0,184,160,0.4);
+      transform: translateY(-6px);
+    }
+    .nav-item.active i { font-size: 1.5rem; }
+    .nav-badge {
+      position: absolute;
+      top: 2px; right: 8px;
+      background: #ff4d4d;
+      color: white;
+      font-size: 0.6rem;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      display: none;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal {
+      background: #f5fffe;
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px 40px;
+      width: 100%;
+      max-width: 500px;
+      animation: slideUp 0.3s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-titulo { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .modal-sub { font-size: 0.8rem; color: #7a9aaa; margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 0.75rem; color: #7a9aaa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid rgba(0,184,160,0.3);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: 'Segoe UI', sans-serif;
+      color: #050d1a;
+      background: #e8f8f6;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: #00b8a0; }
+    .form-input[readonly] {
+      background: #e4f8f5;
+      color: #00b8a0;
+      font-weight: 600;
+      cursor: not-allowed;
+    }
+    .form-textarea { height: 80px; resize: none; }
+    .tiempo-box { display: flex; gap: 10px; }
+    .tiempo-box .form-group { flex: 1; }
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #00c8b0, #00e676);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+    .btn-cancelar {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: #7a9aaa;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    /* Modo oscuro */
+body.dark {
+  background: #020f1a;
+  color: white;
+}
+body.dark .header { border-bottom-color: rgba(0,230,200,0.2); }
+body.dark .stat-card,
+body.dark .alerta-card,
+body.dark .historial-item,
+body.dark .chart-card,
+body.dark .modal { background: #031a2e; border-color: rgba(0,230,200,0.2); color: white; }
+body.dark .stat-label,
+body.dark .alerta-hora,
+body.dark .historial-sub,
+body.dark .bar-label { color: rgba(255,255,255,0.5); }
+body.dark .alerta-zona { color: rgba(255,255,255,0.4); }
+body.dark .nav-bottom { background: #031a2e; border-color: rgba(0,230,200,0.2); }
+body.dark .nav-item { color: rgba(255,255,255,0.4); }
+body.dark .bar-bg { background: rgba(0,230,200,0.05); }
+body.dark .form-input,
+body.dark .form-textarea { background: #042030; border-color: rgba(0,230,200,0.2); color: white; }
+body.dark .form-label { color: rgba(0,230,200,0.7); }
+body.dark .btn-cancelar { color: rgba(255,255,255,0.4); border-color: rgba(255,255,255,0.1); }
+body.dark .vacio { color: rgba(255,255,255,0.3); }
+body.dark .alerta-nombre,
+body.dark .historial-nombre,
+body.dark .chart-titulo { color: white; }
+body.dark .modal-sub { color: rgba(255,255,255,0.5); }
+
+.metrica-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,184,160,0.2);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f5fffe;
+}
+.metrica-opcion.seleccionada {
+  border-color: #00b8a0;
+  background: rgba(0,184,160,0.08);
+}
+.metrica-opcion-icono { font-size: 1.6rem; color: #00b8a0; min-width: 32px; text-align: center; }
+.metrica-opcion-texto { flex: 1; }
+.metrica-opcion-nombre { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+.metrica-opcion-desc { font-size: 0.75rem; color: #7a9aaa; }
+.metrica-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,184,160,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  color: transparent;
+  transition: all 0.2s;
+  min-width: 22px;
+}
+.metrica-opcion.seleccionada .metrica-check {
+  background: #00b8a0;
+  border-color: #00b8a0;
+  color: white;
+}
+body.dark .metrica-opcion { background: #031a2e; border-color: rgba(0,230,200,0.15); }
+body.dark .metrica-opcion.seleccionada { background: rgba(0,230,200,0.08); border-color: rgba(0,230,200,0.4); }
+body.dark .metrica-opcion-nombre { color: white; }
+
+@keyframes latido {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.25); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.15); }
+  60% { transform: scale(1); }
+}
+#corazon-anim { animation: latido 1.2s ease-in-out infinite; }
+
+@keyframes corazonFeliz {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.3) rotate(-10deg); }
+  50% { transform: scale(1.3) rotate(10deg); }
+  75% { transform: scale(1.1) rotate(-5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.corazon-feliz { animation: corazonFeliz 0.6s ease forwards; }
+  </style>
+</head>
+
+  <!-- Sección Alertas -->
+<body>
+  <div id="sec-alertas" class="seccion visible">
+    <div class="header">
+      <div class="header-left">
+        <i class='bx bx-shield-quarter'></i>
+        <div class="logo">SAFEPASS</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="badge-clinica">CLÍNICA</span>
+        <button onclick="cerrarSesion()" style="background:transparent; border:1px solid rgba(255,77,77,0.3); color:#ff4d4d; padding:6px 12px; border-radius:20px; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
+          <i class='bx bx-log-out'></i> Salir
+        </button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-numero" id="total-alertas">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-numero rojo" id="alertas-activas">0</div>
+        <div class="stat-label">Activas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-numero" id="alertas-atendidas">0</div>
+        <div class="stat-label">Resueltas</div>
+      </div>
+    </div>
+    <div class="sec-titulo">
+      <div class="dot-rojo"></div>
+      Alertas activas
+    </div>
+    <div id="lista-activas"></div>
+    <div class="sec-titulo" style="margin-top:20px">
+      <i class='bx bx-check-circle' style="color:#00b8a0"></i>
+      Resueltas recientes
+    </div>
+    <div id="lista-atendidas"></div>
+  </div>
+
+  <!-- Sección Historial -->
+  <div id="sec-historial" class="seccion">
+    <div class="header">
+      <div class="header-left">
+        <i class='bx bx-history'></i>
+        <div class="logo">HISTORIAL</div>
+      </div>
+    </div>
+    <div id="lista-historial"></div>
+  </div>
+
+  <div id="sec-stats" class="seccion">
+  <div class="header">
+    <div class="header-left">
+      <i class='bx bx-bar-chart-alt-2'></i>
+      <div class="logo">ESTADÍSTICAS</div>
+    </div>
+    <button onclick="abrirModalMetricas()" style="background:linear-gradient(135deg,#00c8b0,#00e676); border:none; color:white; padding:8px 16px; border-radius:20px; font-size:0.78rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+      <i class='bx bx-slider-alt'></i> PERSONALIZAR
+    </button>
+  </div>
+  <div id="charts"></div>
+</div>
+
+
+  <!-- Nav -->
+  <nav class="nav-bottom">
+    <button class="nav-item active" id="nav-alertas" onclick="cambiarSeccion('alertas')">
+      <span class="nav-badge" id="badge-alertas">0</span>
+      <i class='bx bx-bell'></i>
+      Alertas
+    </button>
+    <button class="nav-item" id="nav-historial" onclick="cambiarSeccion('historial')">
+      <i class='bx bx-history'></i>
+      Historial
+    </button>
+    <button class="nav-item" id="nav-stats" onclick="cambiarSeccion('stats')">
+      <i class='bx bx-bar-chart-alt-2'></i>
+      Stats
+    </button>
+    <button class="nav-item" onclick="accederAdmin()">
+      <i class='bx bx-shield-alt-2'></i>
+      Admin
+    </button>
+  </nav>
+
+  <!-- Modal resolución -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-titulo">Emergencia Resuelta</div>
+      <div class="modal-sub">Completá el reporte de atención</div>
+
+      <input type="hidden" id="modal-alerta-id">
+
+      <div class="form-group">
+        <label class="form-label">Doctor / Enfermero que atendió</label>
+        <input class="form-input" id="form-doctor" placeholder="Nombre completo" type="text">
+      </div>
+
+      <!-- Tiempos automáticos — NO editables -->
+      <div class="tiempo-box">
+        <div class="form-group">
+          <label class="form-label">⏱ Inicio emergencia</label>
+          <input class="form-input" id="form-hora-inicio" type="text" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">✅ Hora resolución</label>
+          <input class="form-input" id="form-hora-fin" type="text" readonly>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">⏳ Tiempo de respuesta</label>
+        <input class="form-input" id="form-tiempo" type="text" readonly
+          style="font-size:1rem; font-weight:700;">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">¿Qué se hizo?</label>
+        <textarea class="form-textarea" id="form-tratamiento" placeholder="Describí el tratamiento aplicado..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Medicamento administrado</label>
+        <input class="form-input" id="form-medicamento" placeholder="Nombre del medicamento o Ninguno">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lugar de atención</label>
+        <input class="form-input" id="form-lugar" placeholder="Ej: Clínica, Taller, Pasillo B">
+      </div>
+
+      <button class="btn-submit" onclick="resolverEmergencia()">
+        CONFIRMAR RESOLUCIÓN
+      </button>
+      <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let alertas = [];
+    let alertaActualId = null;
+    let enCamino = {};
+
+  function sonarAlerta() {
+  try {
+    const ctx = new AudioContext();
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.8, ctx.currentTime);
+
+    // 3 pitidos
+    [0, 0.35, 0.7].forEach(offset => {
+      const osc = ctx.createOscillator();
+      osc.connect(gain);
+      osc.frequency.setValueAtTime(1200, ctx.currentTime + offset);
+      osc.frequency.setValueAtTime(800, ctx.currentTime + offset + 0.1);
+      osc.frequency.setValueAtTime(1200, ctx.currentTime + offset + 0.2);
+      gain.gain.setValueAtTime(0.8, ctx.currentTime + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.3);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.3);
+    });
+  } catch(e) {}
+}
+
+    async function cargarAlertas() {
+  const res = await fetch('/api/alertas');
+  const nuevas = await res.json();
+  const activasAntes = alertas.filter(a => a.estado === 'activa').length;
+  const activasAhora = nuevas.filter(a => a.estado === 'activa').length;
+  if (activasAhora > activasAntes) sonarAlerta();
+ alertas = nuevas;
+  renderAlertas();
+  renderHistorial();
+  renderStats();
+}
+
+async function resolverEmergencia() {
+  const doctor      = document.getElementById('form-doctor').value.trim();
+  const tratamiento = document.getElementById('form-tratamiento').value.trim();
+  const medicamento = document.getElementById('form-medicamento').value.trim();
+  const lugar       = document.getElementById('form-lugar').value.trim();
+  const minutos     = parseInt(document.getElementById('form-tiempo').dataset.minutos) || 0;
+
+  if (!doctor || !tratamiento) {
+    alert('Por favor completá al menos el doctor y el tratamiento');
+    return;
+  }
+
+  try {
+    await fetch('/api/resoluciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_alerta: alertaActualId, doctor, tiempo_respuesta: minutos, tratamiento, medicamento, lugar })
+    });
+    await fetch(`/api/alertas/${alertaActualId}/atender`, { method: 'PUT' });
+    socket.emit('alerta_resuelta', { id_alerta: alertaActualId });
+    cerrarModal();
+    await cargarAlertas();
+  } catch(e) {
+    console.error('Error al resolver emergencia:', e);
+    alert('Ocurrió un error, intentá de nuevo.');
+  }
+}
+
+function cerrarSesion() {
+  sessionStorage.removeItem('usuario');
+  window.location.href = '/login.html';
+}
+    function renderAlertas() {
+      const activas  = alertas.filter(a => a.estado === 'activa');
+      const atendidas = alertas.filter(a => a.estado === 'atendida').slice(0, 5);
+
+      document.getElementById('total-alertas').textContent    = alertas.length;
+      document.getElementById('alertas-activas').textContent  = activas.length;
+      document.getElementById('alertas-atendidas').textContent = alertas.filter(a => a.estado === 'atendida').length;
+
+      const badge = document.getElementById('badge-alertas');
+      if (activas.length > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = activas.length;
+      } else {
+        badge.style.display = 'none';
+      }
+
+      document.getElementById('lista-activas').innerHTML = activas.length === 0
+        ? '<div class="vacio"><i class="bx bx-check-shield"></i>Sin alertas activas</div>'
+        : activas.map(a => cardAlerta(a)).join('');
+
+      document.getElementById('lista-atendidas').innerHTML = atendidas.length === 0
+        ? '<div class="vacio">Sin alertas resueltas aún</div>'
+        : atendidas.map(a => cardAlerta(a)).join('');
+    }
+
+    function cardAlerta(a) {
+  const esActiva = a.estado === 'activa';
+ const yaEnCamino = enCamino[String(a.id_alerta)];
+
+  return `
+    <div class="alerta-card ${a.estado}">
+      <div class="alerta-top">
+        ${esActiva
+          ? `<span class="alerta-badge-activa"><span style="width:6px;height:6px;background:white;border-radius:50%;display:inline-block"></span> ACTIVA</span>`
+          : `<span style="font-size:0.7rem;color:${a.es_falsa ? '#ff4d4d' : '#00b8a0'};font-weight:600">${a.es_falsa ? '⚠️ FALSA' : '✓ RESUELTA'}</span>`
+        }
+        <span class="alerta-hora">${formatFecha(a.hora_alerta)}</span>
+      </div>
+
+      <div class="alerta-nombre">${a.nombre_estudiante}</div>
+
+      <div class="alerta-emergencia">
+        <i class='bx bx-error-circle'></i> ${a.tipo_emergencia}
+      </div>
+
+      <div class="alerta-datos">
+        <span class="tag"><i class='bx bx-user'></i> ${a.genero}</span>
+        <span class="tag"><i class='bx bx-calendar'></i> ${a.edad} años</span>
+      </div>
+
+      <div class="alerta-zona">
+        <i class='bx bx-map-pin'></i>
+        ${a.zonas?.nombre_zona || 'Zona desconocida'} — ${a.zonas?.edificio || ''}
+      </div>
+
+      ${esActiva ? `
+        <button class="btn-camino ${yaEnCamino ? 'activo' : ''}" onclick="marcarEnCamino(${a.id_alerta})">
+          <i class='bx bx-run'></i>
+          ${yaEnCamino ? '✓ EN CAMINO' : 'MARCAR EN CAMINO'}
+        </button>
+        <button class="btn-resolver" onclick="abrirModal(${a.id_alerta})">
+          <i class='bx bx-check-circle'></i>
+          EMERGENCIA RESUELTA
+        </button>
+        <button onclick="abrirModalFalsa(${a.id_alerta})" style="width:100%; padding:10px; background:transparent; border:1px solid rgba(255,77,77,0.4); color:#ff4d4d; border-radius:10px; font-size:0.8rem; font-weight:700; cursor:pointer; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <i class='bx bx-error'></i> ALERTA FALSA
+        </button>
+      ` : ''}
+    </div>
+  `;
+}
+    function toggleResumen(id) {
+  const resumen = document.getElementById('resumen-' + id);
+  if (!resumen) return;
+  resumen.style.display = resumen.style.display === 'none' ? 'block' : 'none';
+}
+
+    function marcarEnCamino(id) {
+  enCamino[String(id)] = true;
+  socket.emit('doctor_en_camino', { id_alerta: id });
+  renderAlertas();
+  sonarAlerta();
+}
+
+    // ── MODAL con tiempos automáticos ──────────────────────────────────────
+   function abrirModal(id) {
+  const alerta = alertas.find(a => String(a.id_alerta) === String(id));
+
+  if (!alerta) {
+    console.error('No se encontró alerta con id:', id);
+    return;
+  }
+
+  alertaActualId = id;
+  document.getElementById('modal-alerta-id').value = id;
+
+  const horaInicio = new Date(alerta.hora_alerta);
+  const horaFin    = new Date();
+
+  const diffMs  = Math.abs(horaFin - horaInicio);
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffSeg = Math.floor((diffMs % 60000) / 1000);
+
+  document.getElementById('form-hora-inicio').value = formatHora(horaInicio);
+  document.getElementById('form-hora-fin').value    = formatHora(horaFin);
+  document.getElementById('form-tiempo').value      = `${diffMin} min ${diffSeg} seg`;
+  document.getElementById('form-tiempo').dataset.minutos = diffMin;
+
+  // Doctor: pre-llenar con usuario logueado
+  const _usuarioActual = JSON.parse(sessionStorage.getItem('usuario') || '{}');
+  document.getElementById('form-doctor').value = _usuarioActual.nombre || '';
+
+  // Lugar: pre-llenar con zona de la alerta
+  const zonaNombre   = alerta.zonas?.nombre_zona || '';
+  const zonaEdificio = alerta.zonas?.edificio || '';
+  document.getElementById('form-lugar').value = zonaEdificio
+    ? `${zonaNombre} — ${zonaEdificio}`
+    : zonaNombre;
+
+  document.getElementById('form-tratamiento').value = '';
+  document.getElementById('form-medicamento').value = '';
+
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+    function renderHistorial() {
+      document.getElementById('lista-historial').innerHTML = alertas.length === 0
+        ? '<div class="vacio"><i class="bx bx-history"></i>Sin historial</div>'
+        : alertas.map(a => `
+          <div class="historial-item">
+            <div>
+              <div class="historial-nombre">${a.nombre_estudiante}</div>
+              <div class="historial-sub">${a.tipo_emergencia}</div>
+              <div class="historial-sub">${a.zonas?.nombre_zona || ''} · ${formatFecha(a.hora_alerta)}</div>
+            </div>
+            <span class="${a.estado === 'activa' ? 'badge-act' : 'badge-ok'}">${a.estado}</span>
+          </div>
+        `).join('');
+    }
+
+    const _usuario = JSON.parse(sessionStorage.getItem('usuario') || '{}');
+const _keyMetricas = `metricasActivas_${_usuario.id_usuario || 'default'}`;
+
+const METRICAS_CONFIG = [
+  { id: 'periodo',      icono: '📅', nombre: 'Alertas por período',       desc: 'Cuántas alertas hubo hoy, esta semana y este mes.' },
+  { id: 'tiempo',       icono: '⏱️', nombre: 'Tiempo de respuesta',        desc: 'Promedio de minutos desde la alerta hasta la atención.' },
+  { id: 'zonas',        icono: '📍', nombre: 'Zonas con más incidentes',   desc: 'Qué áreas del campus concentran más emergencias.' },
+  { id: 'tipos',        icono: '🚨', nombre: 'Tipos de emergencia',        desc: 'Las emergencias más frecuentes registradas.' },
+  { id: 'resumen',      icono: '📊', nombre: 'Resumen general',            desc: 'Total, activas y resueltas de un vistazo.' },
+  { id: 'falsas',       icono: '⚠️', nombre: 'Alertas falsas',             desc: 'Falsas vs reales y los motivos más comunes.' },
+  { id: 'horas',        icono: '🕐', nombre: 'Actividad por hora',         desc: 'A qué horas del día ocurren más emergencias.' },
+  { id: 'tasa',         icono: '✅', nombre: 'Tasa de resolución',         desc: 'Porcentaje de emergencias resueltas del total.' },
+  { id: 'genero',       icono: '👥', nombre: 'Distribución por género',    desc: 'Proporción de pacientes masculinos y femeninos.' },
+  { id: 'edad',         icono: '🎂', nombre: 'Edad promedio',              desc: 'Edad promedio de los estudiantes atendidos.' },
+  { id: 'medicamentos', icono: '💊', nombre: 'Medicamentos más usados',    desc: 'Qué medicamentos se administran con más frecuencia.' },
+  { id: 'doctores',     icono: '👨‍⚕️', nombre: 'Doctor con más atenciones', desc: 'Personal médico con mayor número de casos resueltos.' },
+  { id: 'lugares',      icono: '🏥', nombre: 'Lugares de atención',        desc: 'Dónde se atendieron más emergencias.' },
+];
+
+let metricasActivas = JSON.parse(localStorage.getItem(_keyMetricas) || 'null')
+  || METRICAS_CONFIG.map(m => m.id);
+
+async function renderStats() {
+  const res = await fetch('/api/alertas/metricas/resumen');
+  const m = await res.json();
+
+  document.getElementById('charts').innerHTML = `
+    <div class="chart-card" data-metrica="periodo">
+      <div class="chart-titulo">Alertas por período</div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center;">
+        <div style="background:#e8f8f6; border-radius:12px; padding:14px;">
+          <div style="font-size:1.8rem; font-weight:700; color:#00b8a0">${m.porDia}</div>
+          <div style="font-size:0.65rem; color:#7a9aaa; text-transform:uppercase; letter-spacing:1px; margin-top:4px">Hoy</div>
+        </div>
+        <div style="background:#e8f8f6; border-radius:12px; padding:14px;">
+          <div style="font-size:1.8rem; font-weight:700; color:#00b8a0">${m.porSemana}</div>
+          <div style="font-size:0.65rem; color:#7a9aaa; text-transform:uppercase; letter-spacing:1px; margin-top:4px">Esta semana</div>
+        </div>
+        <div style="background:#e8f8f6; border-radius:12px; padding:14px;">
+          <div style="font-size:1.8rem; font-weight:700; color:#00b8a0">${m.porMes}</div>
+          <div style="font-size:0.65rem; color:#7a9aaa; text-transform:uppercase; letter-spacing:1px; margin-top:4px">Este mes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card" data-metrica="tiempo">
+      <div class="chart-titulo">Tiempo promedio de respuesta</div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="font-size:3rem; font-weight:700; color:#00b8a0">${m.tiempoPromedio}</div>
+        <div>
+          <div style="font-size:1rem; font-weight:600">minutos</div>
+          <div style="font-size:0.75rem; color:#7a9aaa">Basado en ${m.atendidas} emergencias resueltas</div>
+        </div>
+      </div>
+      <div style="margin-top:12px; background:#e8f8f6; border-radius:10px; height:8px; overflow:hidden;">
+        <div style="height:100%; border-radius:10px; background:linear-gradient(90deg,#00c8b0,#00e676); width:${Math.min(m.tiempoPromedio * 10, 100)}%"></div>
+      </div>
+    </div>
+
+    <div class="chart-card" data-metrica="zonas">
+      <div class="chart-titulo">Zonas con más incidentes</div>
+      ${m.zonaTop.length > 0 ? m.zonaTop.map(([zona, count]) => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${zona}</span><span>${count}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(count/m.zonaTop[0][1]*100).toFixed(0)}%"></div></div>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:#7a9aaa">Sin datos</div>'}
+    </div>
+
+    <div class="chart-card" data-metrica="tipos">
+      <div class="chart-titulo">Tipos de emergencia más frecuentes</div>
+      ${m.tipoTop.length > 0 ? m.tipoTop.map(([tipo, count]) => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${tipo}</span><span>${count}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(count/m.tipoTop[0][1]*100).toFixed(0)}%; background:linear-gradient(90deg,#ff6b6b,#ff4d4d)"></div></div>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:#7a9aaa">Sin datos</div>'}
+    </div>
+
+    <div class="chart-card" data-metrica="resumen" style="text-align:center">
+      <div class="chart-titulo">Resumen general</div>
+      <div style="display:flex; justify-content:space-around; margin-top:8px">
+        <div><div style="font-size:2rem; font-weight:700; color:#050d1a">${m.total}</div><div style="font-size:0.7rem; color:#7a9aaa">TOTAL</div></div>
+        <div><div style="font-size:2rem; font-weight:700; color:#ff4d4d">${m.activas}</div><div style="font-size:0.7rem; color:#7a9aaa">ACTIVAS</div></div>
+        <div><div style="font-size:2rem; font-weight:700; color:#00b8a0">${m.atendidas}</div><div style="font-size:0.7rem; color:#7a9aaa">RESUELTAS</div></div>
+      </div>
+    </div>
+
+    <div class="chart-card" data-metrica="falsas">
+      <div class="chart-titulo">Alertas falsas vs reales</div>
+      <div style="display:flex; gap:12px; margin-bottom:14px;">
+        <div style="flex:1; background:rgba(0,184,160,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:2rem; font-weight:700; color:#00b8a0">${m.reales}</div>
+          <div style="font-size:0.65rem; color:#7a9aaa; margin-top:4px">REALES</div>
+        </div>
+        <div style="flex:1; background:rgba(255,77,77,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:2rem; font-weight:700; color:#ff4d4d">${m.falsas}</div>
+          <div style="font-size:0.65rem; color:#7a9aaa; margin-top:4px">FALSAS</div>
+        </div>
+      </div>
+      ${m.motivosTop.length > 0 ? m.motivosTop.map(([mot, c]) => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${mot}</span><span>${c}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(c/m.motivosTop[0][1]*100).toFixed(0)}%; background:linear-gradient(90deg,#ff6b6b,#ff4d4d)"></div></div>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:#7a9aaa">Sin alertas falsas aún</div>'}
+    </div>
+
+    <div class="chart-card" data-metrica="horas">
+      <div class="chart-titulo">Actividad por hora del día</div>
+      ${m.horasTop.length > 0 ? m.horasTop.map(([h, c]) => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${h}</span><span>${c}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(c/Math.max(...m.horasTop.map(x=>x[1]))*100).toFixed(0)}%"></div></div>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:#7a9aaa">Sin datos</div>'}
+    </div>
+
+    <div class="chart-card" data-metrica="tasa">
+      <div class="chart-titulo">Tasa de resolución</div>
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px;">
+        <div style="font-size:3rem; font-weight:700; color:#00b8a0">${m.tasaResolucion}%</div>
+        <div style="font-size:0.8rem; color:#7a9aaa;">de emergencias<br>resueltas del total</div>
+      </div>
+      <div style="background:#e8f8f6; border-radius:10px; height:12px; overflow:hidden;">
+        <div style="height:100%; border-radius:10px; background:linear-gradient(90deg,#00c8b0,#00e676); width:${m.tasaResolucion}%"></div>
+      </div>
+    </div>
+
+    <div class="chart-card" data-metrica="genero">
+      <div class="chart-titulo">Distribución por género</div>
+      <div style="display:flex; gap:10px;">
+        ${Object.entries(m.porGenero).map(([g, c]) => `
+          <div style="flex:1; background:rgba(0,184,160,0.08); border-radius:12px; padding:14px; text-align:center;">
+            <div style="font-size:1.8rem; font-weight:700; color:#00b8a0">${c}</div>
+            <div style="font-size:0.7rem; color:#7a9aaa; margin-top:4px">${g.toUpperCase()}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="chart-card" data-metrica="edad">
+      <div class="chart-titulo">Edad promedio de pacientes</div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="font-size:3.5rem; font-weight:700; color:#00b8a0">${m.edadPromedio}</div>
+        <div style="font-size:0.85rem; color:#7a9aaa;">años en promedio<br>de estudiantes atendidos</div>
+      </div>
+    </div>
+
+    <div class="chart-card" data-metrica="medicamentos">
+      <div class="chart-titulo">Medicamentos más usados</div>
+      ${m.medicamentosTop.length > 0 ? m.medicamentosTop.map(([med, c]) => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${med}</span><span>${c}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(c/m.medicamentosTop[0][1]*100).toFixed(0)}%; background:linear-gradient(90deg,#a78bfa,#7c3aed)"></div></div>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:#7a9aaa">Sin datos aún</div>'}
+    </div>
+
+    <div class="chart-card" data-metrica="doctores">
+      <div class="chart-titulo">Doctor con más atenciones</div>
+      ${m.doctoresTop.length > 0 ? m.doctoresTop.map(([doc, c]) => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${doc}</span><span>${c}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(c/m.doctoresTop[0][1]*100).toFixed(0)}%; background:linear-gradient(90deg,#60a5fa,#2563eb)"></div></div>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:#7a9aaa">Sin datos aún</div>'}
+    </div>
+
+    <div class="chart-card" data-metrica="lugares">
+      <div class="chart-titulo">Lugares de atención</div>
+      ${m.lugaresTop.length > 0 ? m.lugaresTop.map(([lug, c]) => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${lug}</span><span>${c}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(c/m.lugaresTop[0][1]*100).toFixed(0)}%; background:linear-gradient(90deg,#fb923c,#ea580c)"></div></div>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:#7a9aaa">Sin datos aún</div>'}
+    </div>
+  `;
+
+  aplicarFiltros();
+}
+
+
+function aplicarFiltros() {
+  document.querySelectorAll('#charts .chart-card').forEach(card => {
+    card.style.display = metricasActivas.includes(card.dataset.metrica) ? 'block' : 'none';
+  });
+}
+
+function abrirModalMetricas() {
+  const lista = document.getElementById('lista-metricas-opciones');
+  lista.innerHTML = METRICAS_CONFIG.map(m => `
+    <div class="metrica-opcion ${metricasActivas.includes(m.id) ? 'seleccionada' : ''}" onclick="toggleMetrica('${m.id}', this)">
+      <div class="metrica-opcion-icono">${m.icono}</div>
+      <div class="metrica-opcion-texto">
+        <div class="metrica-opcion-nombre">${m.nombre}</div>
+        <div class="metrica-opcion-desc">${m.desc}</div>
+      </div>
+      <div class="metrica-check">✓</div>
+    </div>
+  `).join('');
+
+  document.getElementById('texto-listo').textContent = '¡LISTO!';
+  document.getElementById('icono-listo').textContent = '✓';
+  const corazon = document.getElementById('corazon-anim');
+  corazon.style.animation = '';
+  corazon.classList.remove('corazon-feliz');
+  corazon.innerHTML = `<path d="M50 85 C50 85 10 55 10 30 C10 15 22 5 35 5 C42 5 48 9 50 13 C52 9 58 5 65 5 C78 5 90 15 90 30 C90 55 50 85 50 85Z" fill="#ff4d4d"/>`;
+  void corazon.offsetWidth;
+  corazon.style.animation = 'latido 1.2s ease-in-out infinite';
+
+  document.getElementById('modal-metricas-overlay').classList.add('visible');
+}
+
+function cerrarModalMetricas() {
+  document.getElementById('modal-metricas-overlay').classList.remove('visible');
+}
+
+function toggleMetrica(id, el) {
+  if (metricasActivas.includes(id)) {
+    metricasActivas = metricasActivas.filter(m => m !== id);
+    el.classList.remove('seleccionada');
+  } else {
+    metricasActivas.push(id);
+    el.classList.add('seleccionada');
+  }
+}
+
+function guardarMetricas() {
+  localStorage.setItem(_keyMetricas, JSON.stringify(metricasActivas));
+
+  const corazon = document.getElementById('corazon-anim');
+  corazon.style.animation = 'none';
+  corazon.innerHTML = `<path d="M50 85 C50 85 10 55 10 30 C10 15 22 5 35 5 C42 5 48 9 50 13 C52 9 58 5 65 5 C78 5 90 15 90 30 C90 55 50 85 50 85Z" fill="#00b8a0"/>
+    <text x="50" y="55" text-anchor="middle" font-size="32" fill="white">😊</text>`;
+  void corazon.offsetWidth;
+  corazon.classList.add('corazon-feliz');
+
+  document.getElementById('texto-listo').textContent = '¡Guardado!';
+  document.getElementById('icono-listo').textContent = '🎉';
+
+  setTimeout(() => {
+    cerrarModalMetricas();
+    renderStats();
+  }, 1000);
+}
+
+    function formatFecha(fecha) {
+      const d = new Date(fecha);
+      return d.toLocaleDateString('es-SV', {
+        day: '2-digit', month: 'short',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function formatHora(fecha) {
+      const d = new Date(fecha);
+      return d.toLocaleTimeString('es-SV', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+
+    function cambiarSeccion(sec) {
+      document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('sec-' + sec).classList.add('visible');
+      document.getElementById('nav-' + sec).classList.add('active');
+    }
+
+    socket.on('alerta_recibida', () => {
+      sonarAlerta();
+      cargarAlertas();
+    });
+
+socket.on('doctor_en_camino', (data) => {
+  enCamino[String(data.id_alerta)] = true;
+  renderAlertas();
+});
+
+socket.on('alerta_resuelta', () => {
+  cargarAlertas();
+});
+
+socket.on('alerta_falsa', () => {
+  cargarAlertas();
+});
+
+    setInterval(cargarAlertas, 15000);
+    cargarAlertas();
+
+    function abrirModalFalsa(id) {
+  document.getElementById('modal-falsa-id').value = id;
+  document.getElementById('modal-falsa-overlay').classList.add('visible');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-overlay').classList.remove('visible');
+  alertaActualId = null;
+}
+
+function cerrarModalFalsa() {
+  document.getElementById('modal-falsa-overlay').classList.remove('visible');
+}
+
+async function confirmarFalsa() {
+  const id = document.getElementById('modal-falsa-id').value;
+  const motivo = document.getElementById('form-motivo-falsa').value;
+
+  if (!motivo) {
+    alert('Por favor seleccioná un motivo');
+    return;
+  }
+
+  await fetch(`/api/alertas/${id}/falsa`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ motivo_falsa: motivo })
+  });
+
+  socket.emit('alerta_falsa', { id_alerta: id });
+  cerrarModalFalsa();
+  await cargarAlertas();
+}
+
+
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+}
+
+// Agarrar preferencia de clinica.html
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark');
+}
+
+function accederAdmin() {
+  document.getElementById('modal-admin-overlay').classList.add('visible');
+  setTimeout(() => document.getElementById('input-clave-admin').focus(), 300);
+}
+
+function cerrarModalAdmin() {
+  document.getElementById('modal-admin-overlay').classList.remove('visible');
+  document.getElementById('input-clave-admin').value = '';
+  document.getElementById('error-admin').style.display = 'none';
+}
+
+function verificarClave() {
+  const clave = document.getElementById('input-clave-admin').value;
+  if (clave === 'ClinicaITCA2026') {
+    window.location.href = '/admin.html';
+  } else {
+    document.getElementById('error-admin').style.display = 'block';
+    document.getElementById('input-clave-admin').value = '';
+    document.getElementById('input-clave-admin').focus();
+  }
+}
+  </script>
+
+<!-- Modal alerta falsa -->
+<div class="modal-overlay" id="modal-falsa-overlay">
+  <div class="modal">
+    <div class="modal-titulo"> Reportar Alerta Falsa</div>
+    <div class="modal-sub">Indicá el motivo por el que esta alerta es falsa</div>
+    <input type="hidden" id="modal-falsa-id">
+    <div class="form-group">
+      <label class="form-label">Motivo</label>
+      <select class="form-input" id="form-motivo-falsa">
+        <option value="">Seleccioná un motivo</option>
+        <option value="Activación accidental">Activación accidental</option>
+        <option value="Prueba del sistema">Prueba del sistema</option>
+        <option value="Broma o mal uso">Broma o mal uso</option>
+        <option value="Error del estudiante">Error del estudiante</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="confirmarFalsa()" style="background:linear-gradient(135deg,#ff6b6b,#ff4d4d);">
+      CONFIRMAR ALERTA FALSA
+    </button>
+    <button class="btn-cancelar" onclick="cerrarModalFalsa()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal acceso admin -->
+<div class="modal-overlay" id="modal-admin-overlay">
+  <div class="modal" style="max-height:auto;">
+    <div class="modal-titulo">🔐 Acceso Administrador</div>
+    <div class="modal-sub">Ingresá la clave para acceder al panel de administración</div>
+    <div class="form-group">
+      <label class="form-label">Clave de administrador</label>
+      <div style="position:relative;">
+        <input class="form-input" id="input-clave-admin" type="password" 
+          placeholder="••••••••••••"
+          onkeydown="if(event.key==='Enter') verificarClave()">
+      </div>
+    </div>
+    <div id="error-admin" style="display:none; color:#ff4d4d; font-size:0.8rem; margin-bottom:12px; padding:8px; background:rgba(255,77,77,0.08); border-radius:8px;">
+      Clave incorrecta. Intentá de nuevo.
+    </div>
+    <button class="btn-submit" onclick="verificarClave()">
+      INGRESAR
+    </button>
+    <button class="btn-cancelar" onclick="cerrarModalAdmin()">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-metricas-overlay">
+  <div class="modal" style="max-height:85vh; overflow-y:auto;">
+    <div style="text-align:center; margin-bottom:8px;">
+      <svg id="corazon-anim" viewBox="0 0 100 90" width="48" height="48">
+        <path d="M50 85 C50 85 10 55 10 30 C10 15 22 5 35 5 C42 5 48 9 50 13 C52 9 58 5 65 5 C78 5 90 15 90 30 C90 55 50 85 50 85Z" fill="#ff4d4d"/>
+      </svg>
+    </div>
+    <div class="modal-titulo" style="text-align:center;">Personalizar métricas</div>
+    <div class="modal-sub" style="text-align:center;">Seleccioná qué información querés ver en el panel</div>
+    <div id="lista-metricas-opciones"></div>
+    <button onclick="guardarMetricas()" style="width:100%; padding:14px; background:linear-gradient(135deg,#00c8b0,#00e676); color:white; border:none; border-radius:14px; font-size:0.9rem; font-weight:700; cursor:pointer; margin-top:16px; display:flex; align-items:center; justify-content:center; gap:8px;">
+      <span id="texto-listo">¡LISTO!</span>
+      <span id="icono-listo">✓</span>
+    </button>
+    <button onclick="cerrarModalMetricas()" class="btn-cancelar">Cancelar</button>
+  </div>
+</div>
+
+</body>
+</html>
