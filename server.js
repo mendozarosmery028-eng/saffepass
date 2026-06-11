@@ -15,7 +15,11 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/login.html');
+  if (req.query.zona) {
+    res.sendFile('index.html', { root: './public' });
+  } else {
+    res.redirect('/login.html');
+  }
 });
 app.use(express.static('public'));
 
