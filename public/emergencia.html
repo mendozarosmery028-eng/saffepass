@@ -327,21 +327,29 @@
       });
 
     function hablar(texto, callback) {
-      const synth = window.speechSynthesis;
-      synth.cancel();
-      const hacerHablar = () => {
-        const utterance = new SpeechSynthesisUtterance(texto);
-        utterance.lang = 'es-GT';
-        utterance.rate = 1.5;
-        const voces = synth.getVoices();
-        const voz = voces.find(v => v.name === 'Microsoft Pablo - Spanish (Spain)') ||
-                    voces.find(v => v.lang.startsWith('es'));
-        if (voz) utterance.voice = voz;
-        if (callback) utterance.onend = callback;
-        synth.speak(utterance);
-      };
-      speechSynthesis.getVoices().length > 0 ? hacerHablar() : (speechSynthesis.onvoiceschanged = hacerHablar);
-    }
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const hacerHablar = () => {
+    const utterance = new SpeechSynthesisUtterance(texto);
+    utterance.rate = 1.5;
+    utterance.lang = 'es-ES';
+    const voces = synth.getVoices();
+    const voz = voces.find(v => v.name === 'Microsoft Pablo - Spanish (Spain)');
+    if (voz) utterance.voice = voz;
+    if (callback) utterance.onend = callback;
+    synth.speak(utterance);
+  };
+
+  // Evitar que onvoiceschanged se dispare múltiples veces
+  if (speechSynthesis.getVoices().length > 0) {
+    hacerHablar();
+  } else {
+    speechSynthesis.onvoiceschanged = () => {
+      speechSynthesis.onvoiceschanged = null; // ← esto es clave
+      hacerHablar();
+    };
+  }
+}
 
     function escuchar(callback) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -424,14 +432,18 @@
       hablar('Dime, te escucho.', () => escucharPalabraClave());
     }
 
-    function iniciarEmergencia() {
-      document.getElementById('modal-opciones').style.display = 'none';
-      const estado = document.getElementById('estado');
-      estado.className = 'estado activo';
-      pasoActual = 0;
-      datosEstudiante = {};
-      hablar(textos.bienvenida, siguientePregunta);
-    }
+    let asistenteCorriendo = false;
+
+function iniciarEmergencia() {
+  if (asistenteCorriendo) return;
+  asistenteCorriendo = true;
+  document.getElementById('modal-opciones').style.display = 'none';
+  const estado = document.getElementById('estado');
+  estado.className = 'estado activo';
+  pasoActual = 0;
+  datosEstudiante = {};
+  hablar(textos.bienvenida, siguientePregunta);
+}
 
     function siguientePregunta() {
       if (pasoActual >= preguntas.length) {

@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.get('/', (req, res) => {
   if (req.query.zona) {
-    res.sendFile('index.html', { root: './public' });
+    res.sendFile('emergencia.html', { root: './public' });
   } else {
     res.redirect('/login.html');
   }

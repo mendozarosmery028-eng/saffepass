@@ -292,49 +292,48 @@ body.dark .qr-wrapper { background: white; }
         return;
       }
 
-      // Crear canvas final con etiqueta
-      const final = document.createElement('canvas');
-      final.width = 260;
-      final.height = 320;
-      const ctx = final.getContext('2d');
+     const final = document.createElement('canvas');
+final.width = 400;
+final.height = 500;
+const ctx = final.getContext('2d');
 
-      // Fondo blanco
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 260, 320);
+// Fondo blanco
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(0, 0, 400, 500);
 
-      // Header verde
-      ctx.fillStyle = '#00b8a0';
-      ctx.fillRect(0, 0, 260, 50);
+// Header verde
+ctx.fillStyle = '#00b8a0';
+ctx.fillRect(0, 0, 400, 60);
 
-      // Texto SAFEPASS
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 18px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('SAFEPASS', 130, 25);
+// Texto SAFEPASS
+ctx.fillStyle = 'white';
+ctx.font = 'bold 22px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('SAFEPASS', 200, 30);
 
-      // Subtítulo
-      ctx.font = '10px Arial';
-      ctx.fillText('ITCA-FEPADE · SANTA TECLA', 130, 42);
+// Subtítulo
+ctx.font = '12px Arial';
+ctx.fillText('ITCA-FEPADE · SANTA TECLA', 200, 50);
 
-      // QR centrado
-      ctx.drawImage(canvas, 40, 180, 180, 180);
+// QR centrado
+ctx.drawImage(canvas, 50, 80, 300, 300);
 
-      // Nombre zona
-      ctx.fillStyle = '#050d1a';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(nombreZona, 130, 265);
+// Nombre zona
+ctx.fillStyle = '#050d1a';
+ctx.font = 'bold 16px Arial';
+ctx.fillText(nombreZona, 200, 410);
 
-      // Instrucción
-      ctx.fillStyle = '#7a9aaa';
-      ctx.font = '11px Arial';
-      ctx.fillText('Escaneá para reportar emergencia', 130, 285);
+// Instrucción
+ctx.fillStyle = '#7a9aaa';
+ctx.font = '13px Arial';
+ctx.fillText('Escaneá para reportar emergencia', 200, 435);
 
-      // Footer
-      ctx.fillStyle = '#00b8a0';
-      ctx.fillRect(0, 300, 260, 20);
-      ctx.fillStyle = 'white';
-      ctx.font = '9px Arial';
-      ctx.fillText('Sistema de Respuesta de Emergencias', 130, 313);
+// Footer
+ctx.fillStyle = '#00b8a0';
+ctx.fillRect(0, 460, 400, 40);
+ctx.fillStyle = 'white';
+ctx.font = '11px Arial';
+ctx.fillText('Sistema de Respuesta de Emergencias', 200, 485);
 
       // Descargar
       const link = document.createElement('a');
